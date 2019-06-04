@@ -59,7 +59,7 @@ class VeRi(object):
 
         images = images[train_indices]
         ids = ids[train_indices]
-        camera_indices = camera_indices[train_indices]
+        # camera_indices = camera_indices[train_indices]
         return images, ids, camera_indices
 
     def read_validation(self):
@@ -70,7 +70,7 @@ class VeRi(object):
 
         images = images[valid_indices]
         ids = ids[valid_indices]
-        camera_indices = camera_indices[valid_indices]
+        # camera_indices = camera_indices[valid_indices]
         return images, ids, camera_indices
 
 
