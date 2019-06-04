@@ -239,27 +239,27 @@ def create_trainer(preprocess_fn, network_factory, read_from_file, image_shape,
     """
     num_channels = image_shape[-1] if len(image_shape) == 3 else 1
 
-    with tf.device("/gpu:0"):
-        label_var = tf.placeholder(tf.int64, (None,))
+    # with tf.device("/gpu:0"):
+    label_var = tf.placeholder(tf.int64, (None,))
 
-        if read_from_file:
-            # NOTE(nwojke): tf.image.decode_jpg handles various image types.
-            filename_var = tf.placeholder(tf.string, (None, ))
-            image_var = tf.map_fn(
-                lambda x: tf.image.decode_jpeg(
-                    tf.read_file(x), channels=num_channels),
-                filename_var, back_prop=False, dtype=tf.uint8)
-            image_var = tf.image.resize_images(image_var, image_shape[:2])
-            input_vars = [filename_var, label_var]
-        else:
-            image_var = tf.placeholder(tf.uint8, (None,) + image_shape)
-            input_vars = [image_var, label_var]
+    if read_from_file:
+        # NOTE(nwojke): tf.image.decode_jpg handles various image types.
+        filename_var = tf.placeholder(tf.string, (None, ))
+        image_var = tf.map_fn(
+            lambda x: tf.image.decode_jpeg(
+                tf.read_file(x), channels=num_channels),
+            filename_var, back_prop=False, dtype=tf.uint8)
+        image_var = tf.image.resize_images(image_var, image_shape[:2])
+        input_vars = [filename_var, label_var]
+    else:
+        image_var = tf.placeholder(tf.uint8, (None,) + image_shape)
+        input_vars = [image_var, label_var]
 
-        enqueue_vars = [
-            tf.map_fn(
-                lambda x: preprocess_fn(x, is_training=True),
-                image_var, back_prop=False, dtype=tf.float32),
-            label_var]
+    enqueue_vars = [
+        tf.map_fn(
+            lambda x: preprocess_fn(x, is_training=True),
+            image_var, back_prop=False, dtype=tf.float32),
+        label_var]
 
     trainer = queued_trainer.QueuedTrainer(enqueue_vars, input_vars)
     image_var, label_var = trainer.get_input_vars(batch_size)
@@ -364,51 +364,51 @@ def eval_loop(preprocess_fn, network_factory, data_x, data_y, camera_indices,
     probes, galleries = np.asarray(probes), np.asarray(galleries)
 
     # Set up the data feed.
-    with tf.device("/gpu:0"):
-        # Feed probe and gallery indices to the trainer.
-        num_probes, num_gallery_images = probes.shape[1], galleries.shape[1]
-        probe_idx_var = tf.placeholder(tf.int64, (None, num_probes))
-        gallery_idx_var = tf.placeholder(tf.int64, (None, num_gallery_images))
-        trainer = queued_trainer.QueuedTrainer(
-            [probe_idx_var, gallery_idx_var])
+    # with tf.device("/gpu:0"):
+    # Feed probe and gallery indices to the trainer.
+    num_probes, num_gallery_images = probes.shape[1], galleries.shape[1]
+    probe_idx_var = tf.placeholder(tf.int64, (None, num_probes))
+    gallery_idx_var = tf.placeholder(tf.int64, (None, num_gallery_images))
+    trainer = queued_trainer.QueuedTrainer(
+        [probe_idx_var, gallery_idx_var])
 
-        # Retrieve indices from trainer and gather data from constant memory.
-        data_x_var = tf.constant(data_x)
-        data_y_var = tf.constant(data_y)
+    # Retrieve indices from trainer and gather data from constant memory.
+    data_x_var = tf.constant(data_x)
+    data_y_var = tf.constant(data_y)
 
-        probe_idx_var, gallery_idx_var = trainer.get_input_vars(batch_size=1)
-        probe_idx_var = tf.squeeze(probe_idx_var)
-        gallery_idx_var = tf.squeeze(gallery_idx_var)
+    probe_idx_var, gallery_idx_var = trainer.get_input_vars(batch_size=1)
+    probe_idx_var = tf.squeeze(probe_idx_var)
+    gallery_idx_var = tf.squeeze(gallery_idx_var)
 
-        # Apply preprocessing.
-        probe_x_var = tf.gather(data_x_var, probe_idx_var)
-        if read_from_file:
-            # NOTE(nwojke): tf.image.decode_jpg handles various image types.
-            num_channels = image_shape[-1] if len(image_shape) == 3 else 1
-            probe_x_var = tf.map_fn(
-                lambda x: tf.image.decode_jpeg(
-                    tf.read_file(x), channels=num_channels),
-                probe_x_var, dtype=tf.uint8)
-            probe_x_var = tf.image.resize_images(probe_x_var, image_shape[:2])
+    # Apply preprocessing.
+    probe_x_var = tf.gather(data_x_var, probe_idx_var)
+    if read_from_file:
+        # NOTE(nwojke): tf.image.decode_jpg handles various image types.
+        num_channels = image_shape[-1] if len(image_shape) == 3 else 1
         probe_x_var = tf.map_fn(
-            lambda x: preprocess_fn(x, is_training=False),
-            probe_x_var, back_prop=False, dtype=tf.float32)
-        probe_y_var = tf.gather(data_y_var, probe_idx_var)
+            lambda x: tf.image.decode_jpeg(
+                tf.read_file(x), channels=num_channels),
+            probe_x_var, dtype=tf.uint8)
+        probe_x_var = tf.image.resize_images(probe_x_var, image_shape[:2])
+    probe_x_var = tf.map_fn(
+        lambda x: preprocess_fn(x, is_training=False),
+        probe_x_var, back_prop=False, dtype=tf.float32)
+    probe_y_var = tf.gather(data_y_var, probe_idx_var)
 
-        gallery_x_var = tf.gather(data_x_var, gallery_idx_var)
-        if read_from_file:
-            # NOTE(nwojke): tf.image.decode_jpg handles various image types.
-            num_channels = image_shape[-1] if len(image_shape) == 3 else 1
-            gallery_x_var = tf.map_fn(
-                lambda x: tf.image.decode_jpeg(
-                    tf.read_file(x), channels=num_channels),
-                gallery_x_var, dtype=tf.uint8)
-            gallery_x_var = tf.image.resize_images(
-                gallery_x_var, image_shape[:2])
+    gallery_x_var = tf.gather(data_x_var, gallery_idx_var)
+    if read_from_file:
+        # NOTE(nwojke): tf.image.decode_jpg handles various image types.
+        num_channels = image_shape[-1] if len(image_shape) == 3 else 1
         gallery_x_var = tf.map_fn(
-            lambda x: preprocess_fn(x, is_training=False),
-            gallery_x_var, back_prop=False, dtype=tf.float32)
-        gallery_y_var = tf.gather(data_y_var, gallery_idx_var)
+            lambda x: tf.image.decode_jpeg(
+                tf.read_file(x), channels=num_channels),
+            gallery_x_var, dtype=tf.uint8)
+        gallery_x_var = tf.image.resize_images(
+            gallery_x_var, image_shape[:2])
+    gallery_x_var = tf.map_fn(
+        lambda x: preprocess_fn(x, is_training=False),
+        gallery_x_var, back_prop=False, dtype=tf.float32)
+    gallery_y_var = tf.gather(data_y_var, gallery_idx_var)
 
     # Construct the network and compute features.
     probe_and_gallery_x_var = tf.concat(
