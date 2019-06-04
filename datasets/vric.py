@@ -41,7 +41,7 @@ def read_image_directory_to_str(directory, data_dir):
     with open(os.path.join(data_dir, "vric_train.txt"), 'r') as f:
         lines = f.readlines()
         for entry in sorted(lines):
-            filename, _id = entry.split()[0, -1]
+            filename, _id = [x for idx, x in entry.split() if idx == 0 or idx == 2]
             image_filenames.append(os.path.join(directory, filename))
             ids.append(int(_id))
     return image_filenames, ids
