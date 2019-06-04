@@ -63,7 +63,7 @@ def read_image_directory_to_image(directory, data_dir):
 
     """
     # image_filenames, ids, cameras = read_image_directory_to_str(directory)
-    camera_indices = []
+    camera_indices = None
     #Camera indices not needed for vric dataset
     filenames, ids = (
         read_image_directory_to_str(directory, data_dir))
