@@ -239,7 +239,7 @@ def create_trainer(preprocess_fn, network_factory, read_from_file, image_shape,
     """
     num_channels = image_shape[-1] if len(image_shape) == 3 else 1
 
-    with tf.device("/cpu:0"):
+    with tf.device("/gpu:0"):
         label_var = tf.placeholder(tf.int64, (None,))
 
         if read_from_file:
@@ -364,7 +364,7 @@ def eval_loop(preprocess_fn, network_factory, data_x, data_y, camera_indices,
     probes, galleries = np.asarray(probes), np.asarray(galleries)
 
     # Set up the data feed.
-    with tf.device("/cpu:0"):
+    with tf.device("/gpu:0"):
         # Feed probe and gallery indices to the trainer.
         num_probes, num_gallery_images = probes.shape[1], galleries.shape[1]
         probe_idx_var = tf.placeholder(tf.int64, (None, num_probes))
