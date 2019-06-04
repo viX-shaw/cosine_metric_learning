@@ -24,7 +24,7 @@ def read_image_directory_to_str(directory, data_dir):
         individuals in the images, and camera identifiers.
 
     # """
-    # image_filenames, ids, cameras = [], [], []
+    image_filenames, ids, cameras = [], [], []
     # for filename in sorted(os.listdir(directory)):
     #     filename_base, ext = os.path.splitext(filename)
     #     if '.' in filename_base:
