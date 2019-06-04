@@ -40,7 +40,7 @@ import os
 import numpy as np
 import scipy.io as sio
 import train_app
-from datasets import veri
+from datasets import vric as veri
 from datasets import util
 import nets.deep_sort.network_definition as net
 
