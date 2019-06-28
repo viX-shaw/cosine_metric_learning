@@ -8,7 +8,7 @@ import scipy.io as sio
 # The maximum person ID in the dataset.
 MAX_LABEL = 1501
 
-IMAGE_SHAPE = 128, 64, 3
+IMAGE_SHAPE = 128, 48, 3
 
 
 def _parse_filename(filename):
@@ -96,7 +96,7 @@ def read_train_split_to_image(dataset_dir):
     """
     filenames, ids, camera_indices = read_train_split_to_str(dataset_dir)
 
-    images = np.zeros((len(filenames), 128, 64, 3), np.uint8)
+    images = np.zeros((len(filenames)+ IMAGE_SHAPE), np.uint8)
     for i, filename in enumerate(filenames):
         images[i] = cv2.imread(filename, cv2.IMREAD_COLOR)
 
@@ -199,11 +199,11 @@ def read_test_split_to_image(dataset_dir):
     gallery_filenames, gallery_ids, query_filenames, query_ids, good_mask = (
         read_test_split_to_str(dataset_dir))
 
-    gallery_images = np.zeros((len(gallery_filenames), 128, 64, 3), np.uint8)
+    gallery_images = np.zeros((len(gallery_filenames)+ IMAGE_SHAPE), np.uint8)
     for i, filename in enumerate(gallery_filenames):
         gallery_images[i] = cv2.imread(filename, cv2.IMREAD_COLOR)
 
-    query_images = np.zeros((len(query_filenames), 128, 64, 3), np.uint8)
+    query_images = np.zeros((len(query_filenames)+ IMAGE_SHAPE), np.uint8)
     for i, filename in enumerate(query_filenames):
         query_images[i] = cv2.imread(filename, cv2.IMREAD_COLOR)
 
